@@ -1,8 +1,11 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from datetime import datetime, timezone
 from typing import Literal
+from sqlalchemy.orm import Session
+from database_orm import get_db
 from schemas import TicketCreate, TicketStatusUpdate, TicketResponse
-from repositories.tickets import get_ticket_from_db, get_tickets_from_db, create_ticket_in_db, delete_ticket_from_db, update_ticket_status_in_db
+from repositories.tickets import get_ticket_from_db, create_ticket_in_db, delete_ticket_from_db, update_ticket_status_in_db
+from repositories.tickets_orm import get_ticket_orm, get_tickets_orm, create_ticket_orm
 
 
 
@@ -10,9 +13,9 @@ router = APIRouter(prefix="/tickets", tags=["Tickets"])
 
 
 @router.get("/{ticket_id}", response_model=TicketResponse)
-def get_ticket(ticket_id: int):
+def get_ticket(ticket_id: int, db: Session = Depends(get_db)):
 
-    ticket = get_ticket_from_db(ticket_id)
+    ticket = get_ticket_orm(db, ticket_id)
 
     if ticket is None:
         raise HTTPException(status_code=404, detail="Ticket not found")
@@ -24,7 +27,9 @@ def get_ticket(ticket_id: int):
 def get_tickets(
     status: Literal["open", "in_progress", "closed"] | None = None,
     priority: Literal["low", "medium", "high"] | None = None,
-    search: str | None = Query(default=None, min_length=1, max_length=100)):
+    search: str | None = Query(default=None, min_length=1, max_length=100),
+    db: Session = Depends(get_db)
+    ):
 
     if search is not None:
         search = search.strip().lower()
@@ -32,30 +37,25 @@ def get_tickets(
     if search == "":
         search = None         
 
-    tickets = get_tickets_from_db(status, priority, search)
+    tickets = get_tickets_orm(db, status, priority, search)
 
     return tickets
 
 
 @router.post("/", response_model=TicketResponse, status_code=201)
-def create_ticket(ticket: TicketCreate):
+def create_ticket(ticket: TicketCreate, db: Session = Depends(get_db)):
     created_at = datetime.now(timezone.utc).isoformat()
 
     status = "open"
 
-    ticket_id = create_ticket_in_db(
-        ticket.title,
-        ticket.description,
-        status,
-        ticket.priority,
-        created_at
+    new_ticket = create_ticket_orm(
+    db,
+    ticket.title,
+    ticket.description,
+    status,
+    ticket.priority,
+    created_at
     )
-
-    new_ticket = ticket.model_dump()
-    new_ticket["id"] = ticket_id
-    new_ticket["status"] = status
-    new_ticket["created_at"] = created_at
-    new_ticket["closed_at"] = None
 
     return new_ticket
 
