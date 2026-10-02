@@ -59,3 +59,25 @@ def create_ticket_orm(
     db.refresh(ticket)
 
     return ticket
+
+
+def delete_ticket_orm(db: Session, ticket: Ticket):
+
+    db.delete(ticket)
+    db.commit()
+
+
+def update_ticket_status_orm(
+    db: Session,
+    ticket: Ticket,
+    status: str,
+    closed_at: str | None
+    ):
+
+    ticket.status = status
+    ticket.closed_at = closed_at
+
+    db.commit()
+    db.refresh(ticket)
+
+    return ticket

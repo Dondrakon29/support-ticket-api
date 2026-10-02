@@ -4,8 +4,7 @@ from typing import Literal
 from sqlalchemy.orm import Session
 from database_orm import get_db
 from schemas import TicketCreate, TicketStatusUpdate, TicketResponse
-from repositories.tickets import get_ticket_from_db, create_ticket_in_db, delete_ticket_from_db, update_ticket_status_in_db
-from repositories.tickets_orm import get_ticket_orm, get_tickets_orm, create_ticket_orm
+from repositories.tickets_orm import get_ticket_orm, get_tickets_orm, create_ticket_orm, delete_ticket_orm, update_ticket_status_orm
 
 
 
@@ -61,31 +60,38 @@ def create_ticket(ticket: TicketCreate, db: Session = Depends(get_db)):
 
 
 @router.delete("/{ticket_id}")
-def delete_ticket(ticket_id: int):
+def delete_ticket(ticket_id: int, db: Session = Depends(get_db)):
 
-    deleted_rows = delete_ticket_from_db(ticket_id)
+    ticket = get_ticket_orm(db, ticket_id)
 
-    if deleted_rows == 0:
+    if ticket is None:
         raise HTTPException(status_code=404, detail="Ticket not found")
+
+    delete_ticket_orm(db, ticket)
 
     return {"message": "Ticket deleted"}
 
 
 
 @router.patch("/{ticket_id}/status", response_model=TicketResponse)
-def update_ticket_status(ticket_id: int, data: TicketStatusUpdate):
+def update_ticket_status(ticket_id: int, data: TicketStatusUpdate, db: Session = Depends(get_db)):
  
     if data.status == "closed":
         closed_at = datetime.now(timezone.utc).isoformat()
     else:
         closed_at = None
 
-    changed_rows = update_ticket_status_in_db(ticket_id, data.status, closed_at)    
+    ticket = get_ticket_orm(db, ticket_id) 
 
-    if changed_rows == 0:
+    if ticket is None:
         raise HTTPException(status_code=404, detail="Ticket not found")
 
     
-    changed_ticket = get_ticket_from_db(ticket_id)
+    changed_ticket = update_ticket_status_orm(
+        db,
+        ticket,
+        data.status,
+        closed_at
+    )
 
     return changed_ticket  
