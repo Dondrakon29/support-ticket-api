@@ -57,4 +57,12 @@ def delete_comment_orm(db: Session,comment: Comment):
     db.delete(comment)
     db.commit()
 
-    
+
+def update_comment_orm(db: Session, comment: Comment, text: str):
+
+    comment.text = text
+
+    db.commit()
+    db.refresh(comment)
+
+    return comment

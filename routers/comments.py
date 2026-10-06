@@ -2,8 +2,8 @@ from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timezone
 from database_orm import get_db
 from sqlalchemy.orm import Session
-from schemas import CommentCreate, CommentResponse, CommentWithTitleResponse
-from repositories.comments_orm import get_comments_orm, create_comment_orm, get_comments_with_title_orm, get_comment_orm, delete_comment_orm
+from schemas import CommentCreate, CommentResponse, CommentWithTitleResponse, CommentUpdate
+from repositories.comments_orm import get_comments_orm, create_comment_orm, get_comments_with_title_orm, get_comment_orm, delete_comment_orm, update_comment_orm
 from repositories.tickets_orm import get_ticket_orm
 
 
@@ -94,4 +94,26 @@ def delete_comment(
 
     return {"message": "Comment deleted"}
 
+
+
+@router.patch("/{ticket_id}/comments/{comment_id}", response_model=CommentResponse)
+def update_comment(
+    ticket_id: int,
+    comment_id: int,
+    data: CommentUpdate,
+    db: Session = Depends(get_db)
+):
+
+    comment = get_comment_orm(db, comment_id)
+
+    if comment is None:
+        raise HTTPException(status_code=404, detail="Comment not found")
+        
+    if comment.ticket_id != ticket_id:
+        raise HTTPException(status_code=404, detail="Comment not found")
+
+
+    changed_comment = update_comment_orm(db, comment, data.text)
+
+    return changed_comment
 

@@ -37,3 +37,7 @@ class CommentWithTitleResponse(BaseModel):
     text: str
     created_at: str
     ticket_title: str
+
+
+class CommentUpdate(BaseModel):
+    text: str = Field(min_length=1, max_length=500)
