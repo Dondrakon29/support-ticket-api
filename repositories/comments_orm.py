@@ -42,4 +42,19 @@ def get_comments_with_title_orm(db: Session, ticket_id: int):
             "ticket_title": comment.ticket.title
         })
 
-    return result    
+    return result
+
+
+def get_comment_orm(db: Session, comment_id: int):
+
+    comment = db.query(Comment).filter(Comment.id == comment_id).first()
+
+    return comment
+
+
+def delete_comment_orm(db: Session,comment: Comment):
+
+    db.delete(comment)
+    db.commit()
+
+    
