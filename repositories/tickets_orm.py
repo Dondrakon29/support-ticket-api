@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from models import Ticket
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 
 
 def get_ticket_orm(db: Session, ticket_id: int):
@@ -81,3 +81,30 @@ def update_ticket_status_orm(
     db.refresh(ticket)
 
     return ticket
+
+
+def get_tickets_count_orm(db: Session):
+
+    count = db.query(Ticket).count()
+    return count
+
+
+def get_tickets_count_by_status_orm(db: Session, status: str):
+
+    count = db.query(Ticket).filter(Ticket.status == status).count()
+
+    return count
+
+
+def get_tickets_count_grouped_by_status_orm(db: Session):
+
+    rows = db.query(Ticket.status, func.count(Ticket.id)).group_by(Ticket.status).all()
+
+    return rows
+
+
+def get_tickets_count_grouped_by_priority_orm(db: Session):
+    
+    rows = db.query(Ticket.priority, func.count(Ticket.id)).group_by(Ticket.priority).all()
+
+    return rows

@@ -2,9 +2,15 @@ from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timezone
 from database_orm import get_db
 from sqlalchemy.orm import Session
-from schemas import CommentCreate, CommentResponse, CommentWithTitleResponse, CommentUpdate
-from repositories.comments_orm import get_comments_orm, create_comment_orm, get_comments_with_title_orm, get_comment_orm, delete_comment_orm, update_comment_orm
+from schemas import CommentCreate, CommentResponse, CommentWithTitleResponse, CommentUpdate, TicketCommentCountResponse
 from repositories.tickets_orm import get_ticket_orm
+from repositories.comments_orm import (
+    get_comments_orm, 
+    create_comment_orm, 
+    get_comments_with_title_orm, 
+    get_comment_orm, delete_comment_orm, 
+    update_comment_orm,
+    get_comments_count_orm)
 
 
 router = APIRouter(prefix="/tickets", tags=["Comments"])
@@ -117,3 +123,10 @@ def update_comment(
 
     return changed_comment
 
+
+@router.get("/{ticket_id}/comments/stats/count",response_model=TicketCommentCountResponse)
+def get_comments_count(ticket_id: int, db: Session = Depends(get_db)):
+
+    count = get_comments_count_orm(db, ticket_id)
+
+    return {"count": count}

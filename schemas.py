@@ -41,3 +41,22 @@ class CommentWithTitleResponse(BaseModel):
 
 class CommentUpdate(BaseModel):
     text: str = Field(min_length=1, max_length=500)
+
+
+class TicketCountResponse(BaseModel):
+    count: int
+
+
+class TicketStatusCountsResponse(BaseModel):
+    open: int
+    in_progress: int
+    closed: int
+
+
+class TicketPriorityCountsResponse(BaseModel):
+    high: int
+    medium: int
+    low: int
+
+class TicketCommentCountResponse(BaseModel):
+    count: int    

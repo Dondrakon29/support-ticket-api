@@ -66,3 +66,12 @@ def update_comment_orm(db: Session, comment: Comment, text: str):
     db.refresh(comment)
 
     return comment
+
+
+def get_comments_count_orm(db: Session, ticket_id: int):
+
+    count = db.query(Comment).filter(Comment.ticket_id == ticket_id).count()
+
+    return count
+
+    

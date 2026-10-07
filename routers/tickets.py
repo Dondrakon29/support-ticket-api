@@ -3,8 +3,17 @@ from datetime import datetime, timezone
 from typing import Literal
 from sqlalchemy.orm import Session
 from database_orm import get_db
-from schemas import TicketCreate, TicketStatusUpdate, TicketResponse
-from repositories.tickets_orm import get_ticket_orm, get_tickets_orm, create_ticket_orm, delete_ticket_orm, update_ticket_status_orm
+from schemas import TicketCreate, TicketStatusUpdate, TicketResponse, TicketCountResponse, TicketStatusCountsResponse, TicketPriorityCountsResponse
+from repositories.tickets_orm import (
+    get_ticket_orm, 
+    get_tickets_orm, 
+    create_ticket_orm, 
+    delete_ticket_orm, 
+    update_ticket_status_orm, 
+    get_tickets_count_orm,
+    get_tickets_count_by_status_orm,
+    get_tickets_count_grouped_by_status_orm,
+    get_tickets_count_grouped_by_priority_orm)
 
 
 
@@ -95,3 +104,57 @@ def update_ticket_status(ticket_id: int, data: TicketStatusUpdate, db: Session =
     )
 
     return changed_ticket  
+
+
+@router.get("/stats/count", response_model=TicketCountResponse)
+def get_tickets_count(db: Session = Depends(get_db)):
+
+    count = get_tickets_count_orm(db)
+
+    return {"count": count}
+
+
+@router.get("/stats/count/{status}", response_model=TicketCountResponse)
+def get_tickets_count_by_status(
+    status: Literal["open", "in_progress", "closed"],
+    db: Session = Depends(get_db)
+):
+
+    count = get_tickets_count_by_status_orm(db, status)
+
+    return {"count": count}
+
+
+
+@router.get("/stats/statuses", response_model=TicketStatusCountsResponse)
+def get_ticket_status_counts(db: Session = Depends(get_db)):
+
+    rows = get_tickets_count_grouped_by_status_orm(db)
+
+    result = {
+    "open": 0,
+    "in_progress": 0,
+    "closed": 0
+}
+
+    for status, count in rows:
+        result[status] = count
+
+    return result
+
+
+@router.get("/stats/priorities", response_model=TicketPriorityCountsResponse)
+def get_ticket_priority_counts(db: Session = Depends(get_db)):
+
+    rows = get_tickets_count_grouped_by_priority_orm(db)
+
+    result = {
+    "high": 0,
+    "medium": 0,
+    "low": 0
+}
+
+    for priority, count in rows:
+        result[priority] = count
+
+    return result 
