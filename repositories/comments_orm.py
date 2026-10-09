@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 from models import Comment
 
 def get_comments_orm(db: Session, ticket_id: int):
@@ -13,18 +14,22 @@ def create_comment_orm(
     text: str,
     created_at: str
 ):
-
     comment = Comment(
         ticket_id=ticket_id,
         text=text,
         created_at=created_at
     )
 
-    db.add(comment)
-    db.commit()
-    db.refresh(comment)
+    try:
+        db.add(comment)
+        db.commit()
+        db.refresh(comment)
 
-    return comment
+        return comment
+
+    except SQLAlchemyError:
+        db.rollback()
+        raise
 
 
 def get_comments_with_title_orm(db: Session, ticket_id: int):
@@ -54,18 +59,28 @@ def get_comment_orm(db: Session, comment_id: int):
 
 def delete_comment_orm(db: Session,comment: Comment):
 
-    db.delete(comment)
-    db.commit()
+    try:
+        db.delete(comment)
+        db.commit()
 
+    except SQLAlchemyError:
+        db.rollback()
+        raise
 
 def update_comment_orm(db: Session, comment: Comment, text: str):
+    
+    try:
+        comment.text = text
 
-    comment.text = text
+        db.commit()
+        db.refresh(comment)
 
-    db.commit()
-    db.refresh(comment)
+        return comment
 
-    return comment
+    except SQLAlchemyError:
+
+        db.rollback()
+        raise
 
 
 def get_comments_count_orm(db: Session, ticket_id: int):

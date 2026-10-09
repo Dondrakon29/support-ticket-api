@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 from models import Ticket
 from sqlalchemy import or_, func
 
@@ -45,26 +46,38 @@ def create_ticket_orm(
     created_at: str
     ):
 
-    ticket = Ticket(
-        title=title,
-        description=description,
-        status=status,
-        priority=priority,
-        created_at=created_at,
-        closed_at=None
-    )
+    try:
 
-    db.add(ticket)
-    db.commit()
-    db.refresh(ticket)
+        ticket = Ticket(
+            title=title,
+            description=description,
+            status=status,
+            priority=priority,
+            created_at=created_at,
+            closed_at=None
+        )
 
-    return ticket
+     
+        db.add(ticket)
+        db.commit()
+        db.refresh(ticket)
+
+        return ticket
+
+    except SQLAlchemyError:
+        db.rollback()
+        raise
 
 
 def delete_ticket_orm(db: Session, ticket: Ticket):
 
-    db.delete(ticket)
-    db.commit()
+    try:
+        db.delete(ticket)
+        db.commit()
+
+    except SQLAlchemyError:
+        db.rollback()
+        raise    
 
 
 def update_ticket_status_orm(
@@ -74,13 +87,18 @@ def update_ticket_status_orm(
     closed_at: str | None
     ):
 
-    ticket.status = status
-    ticket.closed_at = closed_at
+    try:
+        ticket.status = status
+        ticket.closed_at = closed_at
 
-    db.commit()
-    db.refresh(ticket)
+        db.commit()
+        db.refresh(ticket)
 
-    return ticket
+        return ticket
+
+    except SQLAlchemyError:
+        db.rollback()
+        raise
 
 
 def get_tickets_count_orm(db: Session):
