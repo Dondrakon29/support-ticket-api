@@ -2,8 +2,13 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from models import Comment
 
-def get_comments_orm(db: Session, ticket_id: int):
-    comments = db.query(Comment).filter(Comment.ticket_id == ticket_id ).all()
+def get_comments_orm(db: Session, ticket_id: int, limit: int | None = None):
+    query = db.query(Comment).filter(Comment.ticket_id == ticket_id )
+
+    if limit is not None:
+        query = query.limit(limit)
+
+    comments = query.all()    
 
     return comments
 

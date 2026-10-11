@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timezone
 from database_orm import get_db
 import logging
+from fastapi import Query
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from schemas import CommentCreate, CommentResponse, CommentWithTitleResponse, CommentUpdate, TicketCommentCountResponse
@@ -41,7 +42,7 @@ def create_comment(ticket_id: int, comment: CommentCreate, db: Session = Depends
 
     except SQLAlchemyError:
         logger.exception("Database error while creating comment")
-        
+
         raise HTTPException(
             status_code=500,
             detail="Database error"
@@ -51,14 +52,14 @@ def create_comment(ticket_id: int, comment: CommentCreate, db: Session = Depends
 
 
 @router.get("/{ticket_id}/comments", response_model=list[CommentResponse])
-def get_comments(ticket_id: int, db: Session = Depends(get_db)):
+def get_comments(ticket_id: int, db: Session = Depends(get_db), limit: int | None = Query(default=None, ge=1, le=100)):
 
     ticket = get_ticket_orm(db, ticket_id)
 
     if ticket is None:
         raise HTTPException(status_code=404, detail="Ticket not found")
  
-    comments = get_comments_orm(db, ticket_id)
+    comments = get_comments_orm(db, ticket_id, limit)
 
     return comments
 
