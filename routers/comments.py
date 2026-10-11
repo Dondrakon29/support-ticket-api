@@ -1,7 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timezone
 from database_orm import get_db
+import logging
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 from schemas import CommentCreate, CommentResponse, CommentWithTitleResponse, CommentUpdate, TicketCommentCountResponse
 from repositories.tickets_orm import get_ticket_orm
 from repositories.comments_orm import (
@@ -11,6 +13,9 @@ from repositories.comments_orm import (
     get_comment_orm, delete_comment_orm, 
     update_comment_orm,
     get_comments_count_orm)
+
+
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter(prefix="/tickets", tags=["Comments"])
@@ -26,12 +31,21 @@ def create_comment(ticket_id: int, comment: CommentCreate, db: Session = Depends
 
     created_at = datetime.now(timezone.utc).isoformat()
 
-    new_comment = create_comment_orm(
-    db,
-    ticket_id,
-    comment.text,
-    created_at
-)
+    try:
+        new_comment = create_comment_orm(
+            db,
+            ticket_id,
+            comment.text,
+            created_at
+        )
+
+    except SQLAlchemyError:
+        logger.exception("Database error while creating comment")
+        
+        raise HTTPException(
+            status_code=500,
+            detail="Database error"
+        )
 
     return new_comment
 

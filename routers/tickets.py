@@ -1,7 +1,9 @@
 from fastapi import APIRouter, HTTPException, Query, Depends
 from datetime import datetime, timezone
 from typing import Literal
+import logging
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 from database_orm import get_db
 from schemas import TicketCreate, TicketStatusUpdate, TicketResponse, TicketCountResponse, TicketStatusCountsResponse, TicketPriorityCountsResponse
 from repositories.tickets_orm import (
@@ -15,6 +17,8 @@ from repositories.tickets_orm import (
     get_tickets_count_grouped_by_status_orm,
     get_tickets_count_grouped_by_priority_orm)
 
+
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter(prefix="/tickets", tags=["Tickets"])
@@ -56,14 +60,23 @@ def create_ticket(ticket: TicketCreate, db: Session = Depends(get_db)):
 
     status = "open"
 
-    new_ticket = create_ticket_orm(
-    db,
-    ticket.title,
-    ticket.description,
-    status,
-    ticket.priority,
-    created_at
-    )
+    try:
+        new_ticket = create_ticket_orm(
+        db,
+        ticket.title,
+        ticket.description,
+        status,
+        ticket.priority,
+        created_at
+        )
+
+    except SQLAlchemyError:
+        logger.exception("Database error while creating ticket")
+        
+        raise HTTPException(
+            status_code=500,
+            detail="Database error"
+        )    
 
     return new_ticket
 
