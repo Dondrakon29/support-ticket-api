@@ -52,14 +52,14 @@ def create_comment(ticket_id: int, comment: CommentCreate, db: Session = Depends
 
 
 @router.get("/{ticket_id}/comments", response_model=list[CommentResponse])
-def get_comments(ticket_id: int, db: Session = Depends(get_db), limit: int | None = Query(default=None, ge=1, le=100)):
+def get_comments(ticket_id: int, db: Session = Depends(get_db), limit: int | None = Query(default=None, ge=1, le=100), offset: int = Query(default=0, ge=0)):
 
     ticket = get_ticket_orm(db, ticket_id)
 
     if ticket is None:
         raise HTTPException(status_code=404, detail="Ticket not found")
  
-    comments = get_comments_orm(db, ticket_id, limit)
+    comments = get_comments_orm(db, ticket_id, limit, offset)
 
     return comments
 

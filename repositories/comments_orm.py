@@ -2,8 +2,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from models import Comment
 
-def get_comments_orm(db: Session, ticket_id: int, limit: int | None = None):
+def get_comments_orm(db: Session, ticket_id: int, limit: int | None = None, offset: int = 0):
     query = db.query(Comment).filter(Comment.ticket_id == ticket_id )
+
+    query = query.order_by(Comment.id.asc())
+
+    query = query.offset(offset)
 
     if limit is not None:
         query = query.limit(limit)

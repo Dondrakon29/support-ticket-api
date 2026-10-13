@@ -40,7 +40,9 @@ def get_tickets(
     status: Literal["open", "in_progress", "closed"] | None = None,
     priority: Literal["low", "medium", "high"] | None = None,
     search: str | None = Query(default=None, min_length=1, max_length=100),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    limit: int | None = Query(default=None, ge=1, le=100),
+    offset: int = Query(default=0, ge=0)
     ):
 
     if search is not None:
@@ -49,7 +51,7 @@ def get_tickets(
     if search == "":
         search = None         
 
-    tickets = get_tickets_orm(db, status, priority, search)
+    tickets = get_tickets_orm(db, status, priority, search, limit, offset)
 
     return tickets
 

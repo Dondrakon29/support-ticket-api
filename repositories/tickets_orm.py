@@ -12,7 +12,9 @@ def get_ticket_orm(db: Session, ticket_id: int):
 def get_tickets_orm(db: Session,
     status: str | None = None,
     priority: str | None = None,
-    search: str | None = None
+    search: str | None = None,
+    limit: int | None = None,
+    offset: int = 0
     ):
 
     query = db.query(Ticket)
@@ -30,7 +32,14 @@ def get_tickets_orm(db: Session,
                 Ticket.description.ilike(f"%{search}%")
             )
         )         
-    
+
+
+    query = query.order_by(Ticket.id.asc())
+
+    query = query.offset(offset)
+
+    if limit is not None:
+        query = query.limit(limit)  
 
     tickets = query.all()    
 
