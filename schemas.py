@@ -60,3 +60,9 @@ class TicketPriorityCountsResponse(BaseModel):
 
 class TicketCommentCountResponse(BaseModel):
     count: int    
+
+class TicketListResponse(BaseModel):
+    items: list[TicketResponse]
+    limit: int | None = None
+    offset: int
+    total: int

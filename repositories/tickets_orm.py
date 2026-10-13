@@ -14,7 +14,7 @@ def get_tickets_orm(db: Session,
     priority: str | None = None,
     search: str | None = None,
     limit: int | None = None,
-    offset: int = 0
+    offset: int = 0,
     ):
 
     query = db.query(Ticket)
@@ -33,6 +33,7 @@ def get_tickets_orm(db: Session,
             )
         )         
 
+    total = query.count()
 
     query = query.order_by(Ticket.id.asc())
 
@@ -43,7 +44,7 @@ def get_tickets_orm(db: Session,
 
     tickets = query.all()    
 
-    return tickets
+    return tickets, total
 
 
 def create_ticket_orm(

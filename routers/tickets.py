@@ -5,7 +5,7 @@ import logging
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from database_orm import get_db
-from schemas import TicketCreate, TicketStatusUpdate, TicketResponse, TicketCountResponse, TicketStatusCountsResponse, TicketPriorityCountsResponse
+from schemas import TicketCreate, TicketStatusUpdate, TicketResponse, TicketCountResponse, TicketStatusCountsResponse, TicketPriorityCountsResponse, TicketListResponse
 from repositories.tickets_orm import (
     get_ticket_orm, 
     get_tickets_orm, 
@@ -35,7 +35,7 @@ def get_ticket(ticket_id: int, db: Session = Depends(get_db)):
     return ticket
 
 
-@router.get("/", response_model=list[TicketResponse])
+@router.get("/", response_model=TicketListResponse)
 def get_tickets(
     status: Literal["open", "in_progress", "closed"] | None = None,
     priority: Literal["low", "medium", "high"] | None = None,
@@ -51,9 +51,14 @@ def get_tickets(
     if search == "":
         search = None         
 
-    tickets = get_tickets_orm(db, status, priority, search, limit, offset)
+    tickets, total = get_tickets_orm(db, status, priority, search, limit, offset)
 
-    return tickets
+    return {
+        "items": tickets,
+        "limit": limit,
+        "offset": offset,
+        "total": total
+    }
 
 
 @router.post("/", response_model=TicketResponse, status_code=201)
