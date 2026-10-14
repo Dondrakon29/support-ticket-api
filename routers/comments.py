@@ -5,7 +5,7 @@ import logging
 from fastapi import Query
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
-from schemas import CommentCreate, CommentResponse, CommentWithTitleResponse, CommentUpdate, TicketCommentCountResponse
+from schemas import CommentCreate, CommentResponse, CommentWithTitleResponse, CommentUpdate, TicketCommentCountResponse, CommentListResponse
 from repositories.tickets_orm import get_ticket_orm
 from repositories.comments_orm import (
     get_comments_orm, 
@@ -51,7 +51,7 @@ def create_comment(ticket_id: int, comment: CommentCreate, db: Session = Depends
     return new_comment
 
 
-@router.get("/{ticket_id}/comments", response_model=list[CommentResponse])
+@router.get("/{ticket_id}/comments", response_model=CommentListResponse)
 def get_comments(ticket_id: int, db: Session = Depends(get_db), limit: int | None = Query(default=None, ge=1, le=100), offset: int = Query(default=0, ge=0)):
 
     ticket = get_ticket_orm(db, ticket_id)
@@ -59,9 +59,17 @@ def get_comments(ticket_id: int, db: Session = Depends(get_db), limit: int | Non
     if ticket is None:
         raise HTTPException(status_code=404, detail="Ticket not found")
  
-    comments = get_comments_orm(db, ticket_id, limit, offset)
+    comments, total = get_comments_orm(db, ticket_id, limit, offset)
 
-    return comments
+    has_more = len(comments) + offset < total
+
+    return {
+        "items": comments,
+        "limit": limit,
+        "offset": offset,
+        "total": total,
+        "has_more": has_more
+    }
 
 
 @router.get("/{ticket_id}/comments-with-title", response_model=list[CommentWithTitleResponse])

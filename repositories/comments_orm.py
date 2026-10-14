@@ -5,6 +5,8 @@ from models import Comment
 def get_comments_orm(db: Session, ticket_id: int, limit: int | None = None, offset: int = 0):
     query = db.query(Comment).filter(Comment.ticket_id == ticket_id )
 
+    total = query.count()
+
     query = query.order_by(Comment.id.asc())
 
     query = query.offset(offset)
@@ -14,7 +16,7 @@ def get_comments_orm(db: Session, ticket_id: int, limit: int | None = None, offs
 
     comments = query.all()    
 
-    return comments
+    return comments, total
 
 
 def create_comment_orm(

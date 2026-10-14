@@ -53,11 +53,14 @@ def get_tickets(
 
     tickets, total = get_tickets_orm(db, status, priority, search, limit, offset)
 
+    has_more = len(tickets) + offset < total
+
     return {
         "items": tickets,
         "limit": limit,
         "offset": offset,
-        "total": total
+        "total": total,
+        "has_more": has_more
     }
 
 

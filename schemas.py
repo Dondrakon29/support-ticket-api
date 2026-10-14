@@ -66,3 +66,11 @@ class TicketListResponse(BaseModel):
     limit: int | None = None
     offset: int
     total: int
+    has_more: bool 
+
+class CommentListResponse(BaseModel):
+    items: list[CommentResponse]
+    limit: int | None = None
+    offset: int
+    total: int
+    has_more: bool    
