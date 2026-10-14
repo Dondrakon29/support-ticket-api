@@ -58,7 +58,8 @@ def get_comments(
     db: Session = Depends(get_db), 
     limit: int | None = Query(default=None, ge=1, le=100), 
     offset: int = Query(default=0, ge=0),
-    sort_order: Literal["asc", "desc"] = "asc"
+    sort_order: Literal["asc", "desc"] = "asc",
+    sort_by: Literal["id", "created_at"] = "id"
     ):
 
     ticket = get_ticket_orm(db, ticket_id)
@@ -66,7 +67,7 @@ def get_comments(
     if ticket is None:
         raise HTTPException(status_code=404, detail="Ticket not found")
  
-    comments, total = get_comments_orm(db, ticket_id, limit, offset, sort_order)
+    comments, total = get_comments_orm(db, ticket_id, limit, offset, sort_order, sort_by)
 
     has_more = len(comments) + offset < total
 

@@ -3,16 +3,29 @@ from sqlalchemy.exc import SQLAlchemyError
 from models import Comment
 from typing import Literal
 
-def get_comments_orm(db: Session, ticket_id: int, limit: int | None = None, offset: int = 0, sort_order: Literal["asc", "desc"] = "asc"):
+def get_comments_orm(
+    db: Session,
+    ticket_id: int, 
+    limit: int | None = None, 
+    offset: int = 0, 
+    sort_order: Literal["asc", "desc"] = "asc",
+    sort_by: Literal["id", "created_at"] = "id"
+    ):
+
     query = db.query(Comment).filter(Comment.ticket_id == ticket_id )
 
     total = query.count()
 
+    if sort_by == "created_at":
+        sort_column = Comment.created_at
+    else:
+        sort_column = Comment.id  
+
     if sort_order == "desc":
-        query = query.order_by(Comment.id.desc())
+        query = query.order_by(sort_column.desc(), Comment.id.desc())
     
     else:
-        query = query.order_by(Comment.id.asc())  
+        query = query.order_by(sort_column.asc(), Comment.id.asc())  
 
     query = query.offset(offset)
 

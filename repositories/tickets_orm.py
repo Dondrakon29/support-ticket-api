@@ -16,7 +16,8 @@ def get_tickets_orm(db: Session,
     search: str | None = None,
     limit: int | None = None,
     offset: int = 0,
-    sort_order: Literal["asc", "desc"] = "asc"
+    sort_order: Literal["asc", "desc"] = "asc",
+    sort_by: Literal["id", "created_at"] = "id"
     ):
     
     query = db.query(Ticket)
@@ -37,11 +38,16 @@ def get_tickets_orm(db: Session,
 
     total = query.count()
 
+    if sort_by == "created_at":
+        sort_column = Ticket.created_at
+    else:
+        sort_column = Ticket.id    
+
     if sort_order == "desc":
-        query = query.order_by(Ticket.id.desc())
+        query = query.order_by(sort_column.desc(), Ticket.id.desc())
 
     else:
-        query = query.order_by(Ticket.id.asc())    
+        query = query.order_by(sort_column.asc(), Ticket.id.asc())    
 
     query = query.offset(offset)
 

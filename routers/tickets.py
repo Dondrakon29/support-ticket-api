@@ -43,7 +43,8 @@ def get_tickets(
     db: Session = Depends(get_db),
     limit: int | None = Query(default=None, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
-    sort_order: Literal["asc", "desc"] = "asc"
+    sort_order: Literal["asc", "desc"] = "asc",
+    sort_by: Literal["id", "created_at"] = "id"
     ):
 
     if search is not None:
@@ -52,7 +53,7 @@ def get_tickets(
     if search == "":
         search = None         
 
-    tickets, total = get_tickets_orm(db, status, priority, search, limit, offset, sort_order)
+    tickets, total = get_tickets_orm(db, status, priority, search, limit, offset, sort_order, sort_by)
 
     has_more = len(tickets) + offset < total
 
