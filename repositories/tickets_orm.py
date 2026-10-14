@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from models import Ticket
 from sqlalchemy import or_, func
+from typing import Literal
 
 
 def get_ticket_orm(db: Session, ticket_id: int):
@@ -15,8 +16,9 @@ def get_tickets_orm(db: Session,
     search: str | None = None,
     limit: int | None = None,
     offset: int = 0,
+    sort_order: Literal["asc", "desc"] = "asc"
     ):
-
+    
     query = db.query(Ticket)
 
     if status is not None:
@@ -35,7 +37,11 @@ def get_tickets_orm(db: Session,
 
     total = query.count()
 
-    query = query.order_by(Ticket.id.asc())
+    if sort_order == "desc":
+        query = query.order_by(Ticket.id.desc())
+
+    else:
+        query = query.order_by(Ticket.id.asc())    
 
     query = query.offset(offset)
 

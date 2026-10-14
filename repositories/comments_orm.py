@@ -1,13 +1,18 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from models import Comment
+from typing import Literal
 
-def get_comments_orm(db: Session, ticket_id: int, limit: int | None = None, offset: int = 0):
+def get_comments_orm(db: Session, ticket_id: int, limit: int | None = None, offset: int = 0, sort_order: Literal["asc", "desc"] = "asc"):
     query = db.query(Comment).filter(Comment.ticket_id == ticket_id )
 
     total = query.count()
 
-    query = query.order_by(Comment.id.asc())
+    if sort_order == "desc":
+        query = query.order_by(Comment.id.desc())
+    
+    else:
+        query = query.order_by(Comment.id.asc())  
 
     query = query.offset(offset)
 

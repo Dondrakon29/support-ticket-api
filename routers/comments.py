@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timezone
 from database_orm import get_db
 import logging
+from typing import Literal
 from fastapi import Query
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
@@ -52,14 +53,20 @@ def create_comment(ticket_id: int, comment: CommentCreate, db: Session = Depends
 
 
 @router.get("/{ticket_id}/comments", response_model=CommentListResponse)
-def get_comments(ticket_id: int, db: Session = Depends(get_db), limit: int | None = Query(default=None, ge=1, le=100), offset: int = Query(default=0, ge=0)):
+def get_comments(
+    ticket_id: int, 
+    db: Session = Depends(get_db), 
+    limit: int | None = Query(default=None, ge=1, le=100), 
+    offset: int = Query(default=0, ge=0),
+    sort_order: Literal["asc", "desc"] = "asc"
+    ):
 
     ticket = get_ticket_orm(db, ticket_id)
 
     if ticket is None:
         raise HTTPException(status_code=404, detail="Ticket not found")
  
-    comments, total = get_comments_orm(db, ticket_id, limit, offset)
+    comments, total = get_comments_orm(db, ticket_id, limit, offset, sort_order)
 
     has_more = len(comments) + offset < total
 
