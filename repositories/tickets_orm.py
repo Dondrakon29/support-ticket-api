@@ -123,6 +123,25 @@ def update_ticket_status_orm(
         raise
 
 
+def update_ticket_priority_orm(
+    db: Session,
+    ticket: Ticket,
+    priority: str
+    ):
+
+    try:
+        ticket.priority = priority
+
+        db.commit()
+        db.refresh(ticket)
+
+        return ticket
+
+    except SQLAlchemyError:
+        db.rollback()
+        raise
+
+
 def get_tickets_count_orm(db: Session):
 
     count = db.query(Ticket).count()
@@ -148,3 +167,4 @@ def get_tickets_count_grouped_by_priority_orm(db: Session):
     rows = db.query(Ticket.priority, func.count(Ticket.id)).group_by(Ticket.priority).all()
 
     return rows
+

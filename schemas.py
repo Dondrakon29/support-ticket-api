@@ -74,3 +74,8 @@ class CommentListResponse(BaseModel):
     offset: int
     total: int
     has_more: bool    
+
+
+class TicketPriorityUpdate(BaseModel):
+    priority: Literal["low", "medium", "high"]
+

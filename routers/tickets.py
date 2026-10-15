@@ -5,7 +5,16 @@ import logging
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from database_orm import get_db
-from schemas import TicketCreate, TicketStatusUpdate, TicketResponse, TicketCountResponse, TicketStatusCountsResponse, TicketPriorityCountsResponse, TicketListResponse
+from schemas import (
+    TicketCreate, 
+    TicketStatusUpdate, 
+    TicketResponse, 
+    TicketCountResponse, 
+    TicketStatusCountsResponse, 
+    TicketPriorityCountsResponse, 
+    TicketListResponse,
+    TicketPriorityUpdate
+    )
 from repositories.tickets_orm import (
     get_ticket_orm, 
     get_tickets_orm, 
@@ -15,7 +24,9 @@ from repositories.tickets_orm import (
     get_tickets_count_orm,
     get_tickets_count_by_status_orm,
     get_tickets_count_grouped_by_status_orm,
-    get_tickets_count_grouped_by_priority_orm)
+    get_tickets_count_grouped_by_priority_orm,
+    update_ticket_priority_orm
+    )
 
 
 logger = logging.getLogger(__name__)
@@ -101,7 +112,15 @@ def delete_ticket(ticket_id: int, db: Session = Depends(get_db)):
     if ticket is None:
         raise HTTPException(status_code=404, detail="Ticket not found")
 
-    delete_ticket_orm(db, ticket)
+    try:
+        delete_ticket_orm(db, ticket)
+    
+    except SQLAlchemyError:
+        logger.exception("Database error while deleting ticket")
+        raise HTTPException(
+            status_code=500,
+            detail="Database error"
+        )    
 
     return {"message": "Ticket deleted"}
 
@@ -121,14 +140,47 @@ def update_ticket_status(ticket_id: int, data: TicketStatusUpdate, db: Session =
         raise HTTPException(status_code=404, detail="Ticket not found")
 
     
-    changed_ticket = update_ticket_status_orm(
-        db,
-        ticket,
-        data.status,
-        closed_at
-    )
+    try:
+        changed_ticket = update_ticket_status_orm(
+            db,
+            ticket,
+            data.status,
+            closed_at
+        )
+    except SQLAlchemyError:
+        logger.exception("Database error while updating ticket status")
+        
+        raise HTTPException(
+            status_code=500,
+            detail="Database error"
+        )
 
-    return changed_ticket  
+    return changed_ticket 
+
+
+@router.patch("/{ticket_id}/priority", response_model=TicketResponse)
+def update_ticket_priority(ticket_id: int, data: TicketPriorityUpdate, db: Session = Depends(get_db)):
+ 
+    ticket = get_ticket_orm(db, ticket_id) 
+
+    if ticket is None:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+
+    try:
+        changed_ticket = update_ticket_priority_orm(
+            db,
+            ticket,
+            data.priority
+        )
+    except SQLAlchemyError:
+        logger.exception("Database error while updating ticket priority")
+            
+        raise HTTPException(
+            status_code=500,
+            detail="Database error"
+        ) 
+
+    return changed_ticket 
 
 
 @router.get("/stats/count", response_model=TicketCountResponse)

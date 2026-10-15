@@ -127,7 +127,15 @@ def delete_comment(
     if comment.ticket_id != ticket_id:
         raise HTTPException(status_code=404, detail="Comment not found")
 
-    delete_comment_orm(db, comment)
+    try:
+        delete_comment_orm(db, comment)
+
+    except SQLAlchemyError:
+        logger.exception("Database error while deleting comment")
+        raise HTTPException(
+            status_code=500,
+            detail="Database error"
+        )
 
     return {"message": "Comment deleted"}
 
@@ -149,8 +157,16 @@ def update_comment(
     if comment.ticket_id != ticket_id:
         raise HTTPException(status_code=404, detail="Comment not found")
 
+    try:
+        changed_comment = update_comment_orm(db, comment, data.text)
 
-    changed_comment = update_comment_orm(db, comment, data.text)
+    except SQLAlchemyError:
+        logger.exception("Database error while updating comment")
+        
+        raise HTTPException(
+            status_code=500,
+            detail="Database error"
+        )
 
     return changed_comment
 
