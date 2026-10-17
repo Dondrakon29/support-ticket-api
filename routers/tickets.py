@@ -248,14 +248,20 @@ def update_ticket(ticket_id: int, data: TicketUpdate, db: Session = Depends(get_
     
     if ticket is None:
         raise HTTPException(status_code=404, detail="Ticket not found")
+
+    update_data = data.model_dump(exclude_unset=True)
+
+    if not update_data:
+        raise HTTPException(
+            status_code=400,
+            detail="No fields provided for update"
+        )    
     
     try:
         changed_ticket = update_ticket_orm(
             db=db,
             ticket=ticket,
-            title=data.title,
-            description=data.description,
-            priority=data.priority
+            **update_data
         )
     
     except SQLAlchemyError:
