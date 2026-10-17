@@ -79,3 +79,8 @@ class CommentListResponse(BaseModel):
 class TicketPriorityUpdate(BaseModel):
     priority: Literal["low", "medium", "high"]
 
+class TicketDescriptionUpdate(BaseModel):
+    description: str = Field(min_length=5, max_length=500)
+
+class TicketTitleUpdate(BaseModel):
+    title: str = Field(min_length=3, max_length=100)

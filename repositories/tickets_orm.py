@@ -142,6 +142,44 @@ def update_ticket_priority_orm(
         raise
 
 
+def update_ticket_description_orm(
+        db: Session,
+        ticket: Ticket,
+        description: str
+        ):
+
+    try:
+        ticket.description = description
+
+        db.commit()
+        db.refresh(ticket)
+
+        return ticket
+
+    except SQLAlchemyError:
+        db.rollback()
+        raise
+
+
+def update_ticket_title_orm(
+        db: Session,
+        ticket: Ticket,
+        title: str
+        ):
+
+    try:
+        ticket.title = title
+
+        db.commit()
+        db.refresh(ticket)
+
+        return ticket
+
+    except SQLAlchemyError:
+        db.rollback()
+        raise    
+
+
 def get_tickets_count_orm(db: Session):
 
     count = db.query(Ticket).count()

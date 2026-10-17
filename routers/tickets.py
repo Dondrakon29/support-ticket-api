@@ -13,7 +13,9 @@ from schemas import (
     TicketStatusCountsResponse, 
     TicketPriorityCountsResponse, 
     TicketListResponse,
-    TicketPriorityUpdate
+    TicketPriorityUpdate,
+    TicketDescriptionUpdate,
+    TicketTitleUpdate
     )
 from repositories.tickets_orm import (
     get_ticket_orm, 
@@ -25,7 +27,9 @@ from repositories.tickets_orm import (
     get_tickets_count_by_status_orm,
     get_tickets_count_grouped_by_status_orm,
     get_tickets_count_grouped_by_priority_orm,
-    update_ticket_priority_orm
+    update_ticket_priority_orm,
+    update_ticket_description_orm,
+    update_ticket_title_orm
     )
 
 
@@ -180,7 +184,59 @@ def update_ticket_priority(ticket_id: int, data: TicketPriorityUpdate, db: Sessi
             detail="Database error"
         ) 
 
-    return changed_ticket 
+    return changed_ticket
+
+
+@router.patch("/{ticket_id}/description", response_model=TicketResponse)
+def update_ticket_description(ticket_id: int, data: TicketDescriptionUpdate, db: Session = Depends(get_db)):
+
+    ticket = get_ticket_orm(db, ticket_id) 
+    
+    if ticket is None:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    
+    try:
+        changed_ticket = update_ticket_description_orm(
+            db,
+            ticket,
+            data.description
+        )
+    
+    except SQLAlchemyError:
+        logger.exception("Database error while updating ticket description")
+                
+        raise HTTPException(
+            status_code=500,
+            detail="Database error"
+        ) 
+    
+    return changed_ticket
+
+
+@router.patch("/{ticket_id}/title", response_model=TicketResponse)
+def update_ticket_title(ticket_id: int, data: TicketTitleUpdate, db: Session = Depends(get_db)):
+
+    ticket = get_ticket_orm(db, ticket_id) 
+    
+    if ticket is None:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    
+    try:
+        changed_ticket = update_ticket_title_orm(
+            db,
+            ticket,
+            data.title
+        )
+    
+    except SQLAlchemyError:
+        logger.exception("Database error while updating ticket title")
+                
+        raise HTTPException(
+            status_code=500,
+            detail="Database error"
+        ) 
+    
+    return changed_ticket
 
 
 @router.get("/stats/count", response_model=TicketCountResponse)
