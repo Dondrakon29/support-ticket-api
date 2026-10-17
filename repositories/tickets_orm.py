@@ -143,10 +143,10 @@ def update_ticket_priority_orm(
 
 
 def update_ticket_description_orm(
-        db: Session,
-        ticket: Ticket,
-        description: str
-        ):
+    db: Session,
+    ticket: Ticket,
+    description: str
+    ):
 
     try:
         ticket.description = description
@@ -162,10 +162,10 @@ def update_ticket_description_orm(
 
 
 def update_ticket_title_orm(
-        db: Session,
-        ticket: Ticket,
-        title: str
-        ):
+    db: Session,
+    ticket: Ticket,
+    title: str
+    ):
 
     try:
         ticket.title = title
@@ -178,6 +178,34 @@ def update_ticket_title_orm(
     except SQLAlchemyError:
         db.rollback()
         raise    
+
+
+def update_ticket_orm(
+    db: Session,
+    ticket: Ticket,
+    title: str | None = None,
+    description: str | None = None,
+    priority: str | None = None
+    ):
+
+    try: 
+        if title is not None:
+            ticket.title = title
+
+        if description is not None:
+            ticket.description = description
+
+        if priority is not None:
+            ticket.priority = priority
+
+        db.commit()
+        db.refresh(ticket)
+        
+        return ticket
+
+    except SQLAlchemyError:
+        db.rollback()
+        raise            
 
 
 def get_tickets_count_orm(db: Session):

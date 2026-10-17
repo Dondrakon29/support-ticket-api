@@ -15,7 +15,8 @@ from schemas import (
     TicketListResponse,
     TicketPriorityUpdate,
     TicketDescriptionUpdate,
-    TicketTitleUpdate
+    TicketTitleUpdate,
+    TicketUpdate
     )
 from repositories.tickets_orm import (
     get_ticket_orm, 
@@ -29,7 +30,8 @@ from repositories.tickets_orm import (
     get_tickets_count_grouped_by_priority_orm,
     update_ticket_priority_orm,
     update_ticket_description_orm,
-    update_ticket_title_orm
+    update_ticket_title_orm,
+    update_ticket_orm
     )
 
 
@@ -230,6 +232,34 @@ def update_ticket_title(ticket_id: int, data: TicketTitleUpdate, db: Session = D
     
     except SQLAlchemyError:
         logger.exception("Database error while updating ticket title")
+                
+        raise HTTPException(
+            status_code=500,
+            detail="Database error"
+        ) 
+    
+    return changed_ticket
+
+
+@router.patch("/{ticket_id}", response_model=TicketResponse)
+def update_ticket(ticket_id: int, data: TicketUpdate, db: Session = Depends(get_db)):
+
+    ticket = get_ticket_orm(db, ticket_id) 
+    
+    if ticket is None:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    
+    try:
+        changed_ticket = update_ticket_orm(
+            db=db,
+            ticket=ticket,
+            title=data.title,
+            description=data.description,
+            priority=data.priority
+        )
+    
+    except SQLAlchemyError:
+        logger.exception("Database error while updating ticket")
                 
         raise HTTPException(
             status_code=500,

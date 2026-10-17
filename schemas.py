@@ -84,3 +84,8 @@ class TicketDescriptionUpdate(BaseModel):
 
 class TicketTitleUpdate(BaseModel):
     title: str = Field(min_length=3, max_length=100)
+
+class TicketUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=3, max_length=100)
+    description: str | None = Field(default=None, min_length=5, max_length=500)
+    priority: Literal["low", "medium", "high"] | None = None
