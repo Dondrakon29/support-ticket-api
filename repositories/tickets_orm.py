@@ -38,11 +38,13 @@ def get_tickets_orm(db: Session,
 
     total = query.count()
 
-    if sort_by == "created_at":
-        sort_column = Ticket.created_at
-    else:
-        sort_column = Ticket.id    
+    sort_columns = {
+        "id": Ticket.id,
+        "created_at": Ticket.created_at
+    }
 
+    sort_column = sort_columns[sort_by]
+    
     if sort_order == "desc":
         query = query.order_by(sort_column.desc(), Ticket.id.desc())
 

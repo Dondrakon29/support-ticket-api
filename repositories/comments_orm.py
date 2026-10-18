@@ -16,10 +16,12 @@ def get_comments_orm(
 
     total = query.count()
 
-    if sort_by == "created_at":
-        sort_column = Comment.created_at
-    else:
-        sort_column = Comment.id  
+    sort_columns = {
+        "id": Comment.id,
+        "created_at": Comment.created_at
+    }
+
+    sort_column = sort_columns[sort_by]
 
     if sort_order == "desc":
         query = query.order_by(sort_column.desc(), Comment.id.desc())
