@@ -255,13 +255,19 @@ def update_ticket(ticket_id: int, data: TicketUpdate, db: Session = Depends(get_
         raise HTTPException(
             status_code=400,
             detail="No fields provided for update"
+        )
+
+    if None in update_data.values():
+        raise HTTPException(
+            status_code=400,
+            detail="Fields cannot be null"
         )    
     
     try:
         changed_ticket = update_ticket_orm(
             db=db,
             ticket=ticket,
-            **update_data
+            update_data=update_data
         )
     
     except SQLAlchemyError:

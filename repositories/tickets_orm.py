@@ -183,21 +183,13 @@ def update_ticket_title_orm(
 def update_ticket_orm(
     db: Session,
     ticket: Ticket,
-    title: str | None = None,
-    description: str | None = None,
-    priority: str | None = None
+    update_data: dict
     ):
 
     try: 
-        if title is not None:
-            ticket.title = title
-
-        if description is not None:
-            ticket.description = description
-
-        if priority is not None:
-            ticket.priority = priority
-
+        for field, value in update_data.items():
+            setattr(ticket, field, value)
+  
         db.commit()
         db.refresh(ticket)
         
