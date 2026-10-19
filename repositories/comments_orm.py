@@ -9,10 +9,16 @@ def get_comments_orm(
     limit: int | None = None, 
     offset: int = 0, 
     sort_order: Literal["asc", "desc"] = "asc",
-    sort_by: Literal["id", "created_at"] = "id"
+    sort_by: Literal["id", "created_at"] = "id",
+    search: str | None = None
     ):
 
     query = db.query(Comment).filter(Comment.ticket_id == ticket_id )
+
+    if search is not None:
+        query = query.filter(
+            Comment.text.ilike(f"%{search}%")
+        )
 
     total = query.count()
 

@@ -59,15 +59,25 @@ def get_comments(
     limit: int | None = Query(default=None, ge=1, le=100), 
     offset: int = Query(default=0, ge=0),
     sort_order: Literal["asc", "desc"] = "asc",
-    sort_by: Literal["id", "created_at"] = "id"
+    sort_by: Literal["id", "created_at"] = "id",
+    search: str | None = Query(default=None, min_length=1, max_length=100)
     ):
 
     ticket = get_ticket_orm(db, ticket_id)
 
     if ticket is None:
         raise HTTPException(status_code=404, detail="Ticket not found")
+
+    if search is not None:
+        search = search.strip()
+
+    if not search:
+        raise HTTPException(
+            status_code=400,
+            detail="Search cannot be empty"
+        )
  
-    comments, total = get_comments_orm(db, ticket_id, limit, offset, sort_order, sort_by)
+    comments, total = get_comments_orm(db, ticket_id, limit, offset, sort_order, sort_by, search)
 
     has_more = len(comments) + offset < total
 
