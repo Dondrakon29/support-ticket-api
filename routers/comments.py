@@ -60,7 +60,9 @@ def get_comments(
     offset: int = Query(default=0, ge=0),
     sort_order: Literal["asc", "desc"] = "asc",
     sort_by: Literal["id", "created_at"] = "id",
-    search: str | None = Query(default=None, min_length=1, max_length=100)
+    search: str | None = Query(default=None, min_length=1, max_length=100),
+    created_after: datetime | None = None,
+    created_before: datetime | None = None
     ):
 
     ticket = get_ticket_orm(db, ticket_id)
@@ -71,13 +73,23 @@ def get_comments(
     if search is not None:
         search = search.strip()
 
-    if not search:
+        if not search:
+            raise HTTPException(
+                status_code=400,
+                detail="Search cannot be empty"
+            )
+
+    if (
+        created_after is not None
+        and created_before is not None
+        and created_after >= created_before
+    ):
         raise HTTPException(
             status_code=400,
-            detail="Search cannot be empty"
-        )
+            detail="created_after cannot be later than created_before"
+        )    
  
-    comments, total = get_comments_orm(db, ticket_id, limit, offset, sort_order, sort_by, search)
+    comments, total = get_comments_orm(db, ticket_id, limit, offset, sort_order, sort_by, search, created_after, created_before)
 
     has_more = len(comments) + offset < total
 

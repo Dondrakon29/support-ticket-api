@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from models import Comment
 from typing import Literal
+from datetime import datetime
 
 def get_comments_orm(
     db: Session,
@@ -10,10 +11,26 @@ def get_comments_orm(
     offset: int = 0, 
     sort_order: Literal["asc", "desc"] = "asc",
     sort_by: Literal["id", "created_at"] = "id",
-    search: str | None = None
+    search: str | None = None,
+    created_after: datetime | None = None,
+    created_before: datetime | None = None
     ):
 
     query = db.query(Comment).filter(Comment.ticket_id == ticket_id )
+
+    if created_after is not None:
+        created_after_str = created_after.isoformat()
+
+        query = query.filter(
+            Comment.created_at > created_after_str
+        )
+
+    if created_before is not None:
+        created_before_str = created_before.isoformat()
+    
+        query = query.filter(
+            Comment.created_at < created_before_str
+        )
 
     if search is not None:
         query = query.filter(
