@@ -257,11 +257,12 @@ def update_ticket(ticket_id: int, data: TicketUpdate, db: Session = Depends(get_
             detail="No fields provided for update"
         )
 
-    if None in update_data.values():
-        raise HTTPException(
-            status_code=400,
-            detail="Fields cannot be null"
-        )    
+    for field, value in update_data.items():
+        if value is None and field != "assigned_to":    
+            raise HTTPException(
+                status_code=400,
+                detail="Fields cannot be null"
+            )    
     
     try:
         changed_ticket = update_ticket_orm(

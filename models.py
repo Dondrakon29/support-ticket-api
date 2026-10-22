@@ -13,6 +13,7 @@ class Ticket(Base):
     priority = Column(String, nullable=False)
     created_at = Column(String, nullable=False)
     closed_at = Column(String, nullable=True)
+    assigned_to = Column(String, nullable=True)
 
     comments = relationship("Comment", back_populates="ticket", cascade="all, delete-orphan")
 

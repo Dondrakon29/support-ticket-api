@@ -22,7 +22,8 @@ class TicketResponse(BaseModel):
     status: Literal["open", "in_progress", "closed"]
     priority: Literal["low", "medium", "high"]
     created_at: str
-    closed_at: str | None = None      
+    closed_at: str | None = None
+    assigned_to: str | None = None      
 
 
 class CommentResponse(BaseModel):
@@ -89,3 +90,4 @@ class TicketUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=3, max_length=100)
     description: str | None = Field(default=None, min_length=5, max_length=500)
     priority: Literal["low", "medium", "high"] | None = None
+    assigned_to: str | None = Field(default=None, min_length=2, max_length=100)
